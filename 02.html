@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+
+	<head>
+		<meta charset="UTF-8">
+		<title>列车时刻表查询</title>
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<link href="css/mui.min.css" rel="stylesheet" />
+		<style type="text/css">
+			li {
+				list-style-type: none;
+			}
+		</style>
+	</head>
+
+	<body>
+
+		<header class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">列车时刻表明细</h1>
+		</header>
+
+		<div class="mui-content" id="0202">
+
+
+
+
+</body>
+</html>
+
+		</div>
+
+		<script src="js/mui.min.js"></script>
+		<script type="text/javascript" charset="utf-8">
+			mui.init();
+
+			//通过火车车次查询列车经由车站明细
+			var url3 = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getDetailInfoByTrainCode?UserID=";
+
+			mui.plusReady(function() {
+				var self = plus.webview.currentWebview();
+				var trainCode = self.trainCode;
+
+				var url_ = url3;
+				mui.get(url_, {
+					TrainCode: trainCode
+				}, function(data) {
+
+					var trs = '';
+					var TrainDetailInfos = data.getElementsByTagName('TrainDetailInfo');
+
+					var sencondpag = document.getElementById('0202');
+					for(var i = 0; i < TrainDetailInfos.length; i++) {
+
+						trs +=
+							'<tr class="mui-table" style="text-align: center;"><td>' +
+							TrainDetailInfos[i].getElementsByTagName("TrainStation")[0].innerHTML + '</td><td>' + TrainDetailInfos[i].getElementsByTagName("StartTime")[0].innerHTML + '</td><td>' +
+							TrainDetailInfos[i].getElementsByTagName("ArriveTime")[0].innerHTML + '</td></tr>';
+					}
+
+					sencondpag.innerHTML = '<h1 style="text-align: center;">' +
+						trainCode + '次</h1><table class="mui-table"><tr class="mui-table"><th>车站名称</th><th>发车时间</th><th>到达时间</th></tr>' +
+						trs +
+						'</table>';
+				});
+			});
+		</script>
+	</body>
+
+</html>

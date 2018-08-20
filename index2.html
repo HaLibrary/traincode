@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title>列车时刻表查询</title>
+		<script src="js/mui.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+		
+	</head>
+
+	<body>
+
+		<header id="index" class="mui-bar mui-bar-nav">
+			<a class="mui-action-back mui-icon mui-icon-left-nav mui-pull-left"></a>
+			<h1 class="mui-title">列车时刻表查询</h1>
+		</header>
+
+		<div class="mui-content">
+			<form class="mui-input-group">
+				<div class="mui-input-row">
+					<label>发车站:</label>
+					<input type="text" class="mui-input-clear" name="text-basic" id="search-begin" value="">
+				</div>
+				<div class="mui-input-row">
+					<label>终点站:</label>
+					<input type="text" class="mui-input-clear" name="text-basic" id="search-end" value="">
+				</div>
+				<div class="mui-input-row">
+					<label>车次:</label>
+					<input type="text" class="mui-input-clear" name="text-basic" id="search-no" value="">
+				</div>
+				<div class="mui-input-row ">
+					<button type="button" class="mui-btn" value="搜索" id="search-submit" style="width: 100%;height: 40px; ">查找</button>
+				</div>
+			</form>
+
+			<ul id="list" class="mui-table-view">
+			</ul>
+		</div>
+		<div>
+			<nav class="mui-bar mui-bar-tab ">
+				<a class="mui-tab-item mui-active">
+					<span class="mui-icon mui-icon-search"></span>
+					<span class="mui-tab-label">查询</span>
+				</a>
+				<a class="mui-tab-item ">
+					<span class="mui-icon mui-icon-star">
+                	
+					</span>
+					<span class="mui-tab-label">收藏</span>
+				</a>
+				<a class="mui-tab-item ">
+					<span class="mui-icon mui-icon-gear">
+                	
+					</span>
+					<span class="mui-tab-label">设置</span>
+				</a>
+		</div>
+
+		<script type="text/javascript" charset="utf-8">
+			mui.init();
+
+			//通过发车站和到达站查询火车时刻表
+			var url1 = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getStationAndTimeByStationName?UserID=";
+			//通过火车站车次查询本火车时刻表
+			var url2 = "http://ws.webxml.com.cn/WebServices/TrainTimeWebService.asmx/getStationAndTimeDataSetByLikeTrainCode?UserID=";
+			
+			//绑定按钮事件
+			
+			mui('.mui-input-row').on('tap', '#search-submit', function() {
+				var carNum = document.getElementById('search-no');
+				var starSta = document.getElementById('search-begin');
+				var finSta = document.getElementById('search-end');
+				if(carNum.value || starSta.value && finSta.value) {
+					mui('#search-submit').button('loading');
+					var _data = {};
+					var _url = url1;
+					//如果车次不为空
+					if(!carNum.value) {
+						//开始站设置为发车站的值
+						_data.StartStation = starSta.value;
+						//到达站设置为终点站的值
+						_data.ArriveStation = finSta.value;
+
+					} else {
+						_url = url2;
+						_data.TrainCode = carNum.value;
+					}
+
+					mui.get(_url, _data, function(data) {
+
+						var list = document.getElementById('list');
+						list.innerHTML = '';
+						var timeTables = data.getElementsByTagName("TimeTable");
+
+						var _arr = [];
+						for(var i in timeTables) {
+							if(i > 10) break; //只载入前10条
+
+							if(timeTables[i].getElementsByTagName("FirstStation").innerHTML === "数据没有被发现") {
+								alert("数据没有被发现！");
+								return false;
+							}
+
+							_arr.push(
+								'<li class="mui-table-view-cell" data-no='+timeTables[i].getElementsByTagName("TrainCode")[0].innerHTML+'>' +
+								'<a class="mui-navigate-right >' + '<div class="mui-pull-left">' + '<h3>' + timeTables[i].getElementsByTagName("TrainCode")[0].innerHTML + '次</h3>' + '<p>' +
+								timeTables[i].getElementsByTagName("FirstStation")[0].innerHTML + ' - ' + timeTables[i].getElementsByTagName("LastStation")[0].innerHTML +
+								'</p>' + '<p>用时：' + timeTables[i].getElementsByTagName("UseDate")[0].innerHTML + '</p></div>' +
+								'<div class="mui-pull-right">' + timeTables[i].getElementsByTagName("StartTime")[0].innerHTML + ' 开</div>' +
+								'</a></li>');
+						}
+						if(_arr.length > 0) {
+							list.innerHTML = _arr.join("");
+							//list.listview("refresh");
+						}
+					});
+					mui('#search-submit').button('reset');
+				} else {
+					alert("请输入发车站和终点站或输入车次！");
+				}
+			});
+			mui('#list').on('tap', 'li.mui-table-view-cell', function() {
+				//打开关于页面
+				
+
+							mui.openWindow({
+								url: '02.html',
+								id: 'list',
+								extras:{
+									trainCode:this.getAttribute("data-no")
+								}
+							});
+			});
+		</script>
+	</body>
+
+</html>
